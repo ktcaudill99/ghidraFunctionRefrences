@@ -1,0 +1,66 @@
+from ghidra.program.model.symbol import SymbolUtilities
+from ghidra.util.task import ConsoleTaskMonitor
+from java.io import FileWriter
+from ghidra.app.script import GhidraScript
+import json
+import os
+
+class ExportFunctionReferencesToJson(GhidraScript):
+
+    def run(self):
+        # Step 1: Define the path to the JSON file in the user's home directory
+        json_path = os.path.join(os.getenv('HOME'), 'function_references.json')
+        println("Step 1: JSON file will be saved to: " + json_path)
+
+        try:
+            # Step 2: Get all functions in the current program
+            function_manager = currentProgram.getFunctionManager()
+            functions = function_manager.getFunctions(True)  # True to iterate forward
+            println("Step 2: Retrieved all functions from the program.") 
+
+            # Dictionary to store function names and their references
+            data = {}
+
+            # Step 3: Process each function
+            for function in functions:
+                refs = self.get_function_references(function)  # Use self to call the method
+                if refs:
+                    data[function.getName()] = refs
+            println("Step 3: Processed all functions and gathered their references.")
+
+            # Step 4: Write data to JSON file
+            with open(json_path, 'w') as json_file:
+                json.dump(data, json_file, indent=4)
+                println("Step 4: Data successfully written to JSON file at " + json_path)
+
+        except Exception as e:
+            println("An error occurred: " + str(e))
+
+    def get_function_references(self, function):
+        # Get all references to this function
+        references = currentProgram.getReferenceManager().getReferencesTo(function.getEntryPoint())
+        ref_list = []
+        symbol_table = currentProgram.getSymbolTable()  # Get the symbol table
+        function_manager = currentProgram.getFunctionManager()  # Get the function manager
+
+        for ref in references:
+            ref_address = ref.getFromAddress()
+            symbol = symbol_table.getPrimarySymbol(ref_address)
+            ref_func = function_manager.getFunctionContaining(ref_address)
+
+            # Build the reference information string
+            if symbol and ref_func:
+                ref_info = "{} ({}) in function '{}'".format(ref_address, symbol.getName(), ref_func.getName())
+            elif symbol:
+                ref_info = "{} ({})".format(ref_address, symbol.getName())
+            elif ref_func:
+                ref_info = "{} in function '{}'".format(ref_address, ref_func.getName())
+            else:
+                ref_info = str(ref_address)
+
+            ref_list.append(ref_info)
+        return ref_list
+
+# Instantiate and run the script
+script = ExportFunctionReferencesToJson()
+script.run()
