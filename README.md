@@ -57,9 +57,6 @@ This script is provided **"as-is"** without warranty of any kind. You are free t
 
 ## Author
 - **Name**: [Your Name]
-- **Contact**: [Your Email]
-
-Feel free to modify and adapt the script for your specific needs.
 
 ---
 
@@ -160,7 +157,5 @@ This script is provided **"as-is"** without warranty of any kind. Feel free to u
 
 ## Author
 - **Name**: [Your Name]
-- **Contact**: [Your Email]
 
-Feel free to modify or enhance the script to suit your analysis needs.
 
